@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Javascript</title>
+    <!-- https://www.youtube.com/watch?v=hNYzV87wocY -->
+    <style>
+      body{
+          margin:0 auto;
+          width: 300px;
+            height: 100%;
+            text-align: center;
+      }
+        .car, .enemy{
+            position: absolute;
+            bottom: 100px;
+             margin: auto;
+            width: 50px;
+            height: 100px;
+            background-color: blue;
+        font-size: 2em;    
+        text-align: center;
+        vertical-align:middle;
+        background-image: url(1.jpg);
+        background-size: cover;
+        
+        }
+        .enemy{
+            position: absolute;
+            bottom: 100px;
+             margin: auto;
+            width: 50px;
+            height: 100px;
+            background-color: blue;
+        font-size: 2em;    
+        text-align: center;
+        vertical-align:middle;
+        background-image: url(2.jpg);
+        background-size: cover;
+        
+        }
+        .score{
+            background-color: blueviolet;
+            height: 70px;
+            color: white;
+            font-size: .5em;
+            font-family: fantasy;
+        }
+        .gameArea{
+            
+            background-color: black;
+            width: 300px;
+            height: 100%;
+             overflow: hidden;
+            position:absolute;
+            margin: auto;
+        
+        }
+        /* for road divider */
+        .line{
+            position: absolute;
+            height: 100px;
+            width: 10px;
+            margin-left: 145px;
+            background-color: white;
+        }
+        .startScreen{
+            text-align: center;
+            border: 1px solid red;
+            padding: 15px;
+            margin: auto;
+            width: 350;
+           
+        }
+    </style>
+</head>
+<body>
+    <!-- https://www.youtube.com/watch?v=hNYzV87wocY -->
+    <div class="score"></div>
+    <div class="game"></div>
+    <div class="startScreen" ><b>Click here to Start</b><br> press your arrow <br>
+    if you hit others car <br>you loss the Game</div>
+    <div class="gameArea"></div>
+    
+    <script>
+        //for getting all by queryselector
+        const score =document.querySelector(".score");
+        const startScreen =document.querySelector(".startScreen");
+        const gameArea =document.querySelector(".gameArea");
+        let player ={
+            speed:5,score:0
+        };
+        let keys ={ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false,}
+        //for event by click
+        startScreen.addEventListener("click",start);
+        //for controling key
+        document.addEventListener("keydown",pressOn);
+        document.addEventListener("keyup",pressOff);
+        //for clalling line by loop
+        function moveLines(){
+            let lines =document.querySelectorAll(".line");
+            lines.forEach(function(item){
+                console.log(item.y);
+                if(item.y>= 2000){
+                    item.y -= 2000;
+                }
+                item.y += player.speed;
+                item.style.top = item.y+"px";
+            });
+            
+           
+        } 
+        //fot colision with others
+        function isCollide(a,b){
+            let aRect = a.getBoundingClientRect();
+            let bRect = b.getBoundingClientRect();
+            return !(
+                (aRect.bottom < bRect.top)||
+                (aRect.top > bRect.bottom)||
+                (aRect.right < bRect.left)||
+                (aRect.left > bRect.right)
+            )
+        }
+        //for clalling others car  by loop
+        function moveEnemy(car){
+            let ele =document.querySelectorAll(".enemy");
+            ele.forEach(function(item){
+                if(isCollide(car,item)){
+                    console.log("HIT");
+                    endGame();
+                }
+                if(item.y >= 2000){
+                    item.y = -900;
+                    item.style.left =Math.floor(Math.random()*250)+"px";
+                    item.style.backgroundColor = randomColor();
+                }
+                item.y += player.speed;
+                item.style.top = item.y + "px";
+            });
+        }
+        //for animation
+        function playGame(){
+            console.log("inplay")
+            let car = document.querySelector(".car");
+            //for calling devider
+            moveLines();
+            moveEnemy(car);
+            let road = gameArea.getBoundingClientRect();
+            console.log(player.x)
+            if(player.start){
+                // for selecting car by keys
+                if(keys.ArrowUp && player.y >= road.top)
+                {player.y -= player.speed;}
+                if(keys.ArrowDown && player.y < road.bottom )
+                {player.y += player.speed;}
+                if(keys.ArrowLeft && player.x>0)
+                {player.x -= player.speed;}
+                if(keys.ArrowRight && player.x<(road.width-50))
+                {player.x += player.speed;}
+                car.style.left = player.x + 'px';
+                car.style.top = player.y + 'px';
+            window.requestAnimationFrame(playGame);
+            player.score++;
+            score.innerText="Score: "+player.score;
+            }
+        }
+           //for controling key
+        function pressOn(e){
+            e.preventDefault();
+            keys[e.key]=true;
+            console.log(keys);
+        }
+        function pressOff(e){
+            e.preventDefault();
+            keys[e.key]=false;
+            console.log(keys);
+        }
+        //for game endding
+        function endGame(){
+            player.start =false;
+            score.innerHTML ="Game Over <br>Score was: "+player.score;
+            startScreen.classList.remove("hide");
+        }
+        //for event by click
+        function start(){
+           // console.log("click");
+           startScreen.classList.add("hide");
+        //    gameArea.classList.remove("hide");
+
+             gameArea.innerHTML = "";
+            player.start =true;
+            player.score =0;
+            //for loop for creating road divider
+            for(let s=0;s<11;s++){
+                let div = document.createElement("div");
+                div.classList.add("line");
+                div.y = s*150;
+                div.style.top = (s*150) + "px";
+                gameArea.appendChild(div);
+            }
+            window.requestAnimationFrame(playGame);
+            //for creatin car
+            let car = document.createElement("div");
+            // car.innerText ="Car";
+            car.setAttribute("class","car");
+            gameArea.appendChild(car);
+            player.x =car.offsetLeft;
+            player.y = car.offsetTop;
+            console.log(player);
+            //for add others car name enemy
+            for(let s=0;s<5;s++){
+                let enemy = document.createElement("div");
+                enemy.classList.add("enemy");
+                enemy.innerHTML ="<br>"+(s+1)
+                enemy.y = ((s+1)*700)*-1;
+                enemy.style.top =enemy.y+"px";
+                enemy.style.left =Math.floor(Math.random()*250)+"px";
+                enemy.style.backgroundColor = randomColor();
+                gameArea.appendChild(enemy);
+            }
+        
+        }
+        function randomColor(){
+            function c(){
+                let hex =Math.floor(Math.random()*256).toString(16);
+                return("0"+String(hex)).substr(-2)
+            }
+            return "#"+c()+c()+c();
+        }
+    </script>
+</body>
+</html>
